@@ -4,7 +4,7 @@ from sklearn.cluster import KMeans
 import pandas as pd
 import matplotlib.pyplot as plt
 
-st.title("🧠 Clustering de Segmentos de Clientes")
+st.title("🧠 Clustering - Segmentos de Clientes")
 st.markdown("Utilize KMeans para agrupar clientes com base em dados simulados.")
 
 n_samples = st.slider("Número de clientes", 50, 500, 200)
