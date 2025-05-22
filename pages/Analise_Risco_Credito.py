@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 # Melhor configuração para visualização mobile
 st.set_page_config(page_title="Análise de Crédito", layout="centered")
 
-st.title("🔍 Análise de Crédito (Mobile Friendly)")
+st.title("🔍 Análise de Crédito")
 st.markdown("""
 Simulação de análise de risco de crédito para identificar padrões relacionados à inadimplência.
 
