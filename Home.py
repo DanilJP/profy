@@ -3,7 +3,7 @@ import streamlit as st
 # Página principal otimizada para celular
 st.set_page_config(page_title="Projetos Quant", layout="centered")
 
-st.title("📊 Projetos Quant Interativos")
+st.title("📊 Projetos Quant para Nico")
 st.markdown("Explore projetos práticos em **Finanças Quantitativas**.")
 
 # Expanders com agrupamentos claros e compactos
