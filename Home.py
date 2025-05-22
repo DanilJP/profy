@@ -9,7 +9,7 @@ st.markdown("Explore projetos práticos em **Finanças Quantitativas**.")
 # Agrupamento simples e direto, sem expanders
 st.subheader("💳 Crédito")
 st.page_link("pages/Modelagem_Risco_Credito.py", label="👉 Modelagem de Risco de Crédito")
-st.page_link("pages/Analise_Risco_Credito.py", label="👉 Análise Exploratória de Risco de Crédito")
+st.page_link("pages/Analise_Risco_Credito.py", label="👉 Análise Exp. de Risco de Crédito")
 
 st.subheader("💹 Derivativos")
 st.page_link("pages/Precificacao_BlackScholes.py", label="👉 Precificação com Black-Scholes")
