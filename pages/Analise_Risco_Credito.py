@@ -3,12 +3,20 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-# Layout otimizado para celular
+# Melhor configuração para visualização mobile
 st.set_page_config(page_title="Análise de Crédito", layout="centered")
 
-st.title("🔍 Análise de Risco de Crédito")
+st.title("🔍 Análise de Crédito (Mobile Friendly)")
+st.markdown("""
+Simulação de análise de risco de crédito para identificar padrões relacionados à inadimplência.
 
-# Dados fictícios
+- Dados simulados
+- Visualizações compactas
+- Foco em usabilidade mobile 📱
+""")
+
+# --- Dataset Simulado ---
+@st.cache_data
 def criar_dataset():
     return pd.DataFrame({
         "idade": [25, 45, 35, 50, 23, 40, 60, 37, 48, 33],
@@ -19,39 +27,49 @@ def criar_dataset():
 
 df = criar_dataset()
 
-# Mostrar dados
-with st.expander("📄 Ver dados simulados"):
-    st.dataframe(df, use_container_width=True)
+# --- Visualização compacta dos dados ---
+with st.expander("📄 Ver dados"):
+    st.dataframe(df, use_container_width=True, height=200)
 
-# Filtro por inadimplência
-filtro = st.radio("Filtrar por:", ["Todos", "Inadimplentes", "Adimplentes"], horizontal=True)
+# --- Filtros simples para celular ---
+filtro = st.radio("Filtrar clientes:", ["Todos", "Inadimplentes", "Adimplentes"], horizontal=True)
+df_filtrado = df.copy()
+
 if filtro == "Inadimplentes":
-    df = df[df["inadimplente"] == 1]
+    df_filtrado = df[df["inadimplente"] == 1]
 elif filtro == "Adimplentes":
-    df = df[df["inadimplente"] == 0]
+    df_filtrado = df[df["inadimplente"] == 0]
 
-# Análises interativas
+# --- Gráficos interativos e pequenos ---
 st.subheader("📊 Análises Visuais")
 
-if st.checkbox("🔢 Distribuição de Inadimplência"):
-    fig, ax = plt.subplots(figsize=(4, 3))
-    sns.countplot(x="inadimplente", data=df, ax=ax)
-    ax.set_title("Distribuição de Inadimplência")
+if st.checkbox("🔢 Distribuição"):
+    fig, ax = plt.subplots(figsize=(3.5, 2.5))
+    sns.countplot(x="inadimplente", data=df_filtrado, ax=ax, palette="Set2")
+    ax.set_xticklabels(["Adimplente", "Inadimplente"])
+    ax.set_title("Distribuição")
     st.pyplot(fig, use_container_width=True)
 
-if st.checkbox("📦 Boxplot por variável"):
-    coluna = st.selectbox("Escolha a variável:", ["idade", "renda_mensal", "score_credito"])
-    fig, ax = plt.subplots(figsize=(4, 3))
-    sns.boxplot(x="inadimplente", y=coluna, data=df, ax=ax)
-    ax.set_title(f"Boxplot de {coluna.title()}")
+if st.checkbox("📦 Boxplot"):
+    coluna = st.selectbox("Variável:", ["idade", "renda_mensal", "score_credito"])
+    fig, ax = plt.subplots(figsize=(3.5, 2.5))
+    sns.boxplot(x="inadimplente", y=coluna, data=df_filtrado, palette="Set3", ax=ax)
+    ax.set_xticklabels(["Adimplente", "Inadimplente"])
+    ax.set_title(f"{coluna.replace('_', ' ').title()}")
     st.pyplot(fig, use_container_width=True)
 
-if st.checkbox("📌 Mapa de Correlação"):
-    fig, ax = plt.subplots(figsize=(4.5, 3.5))
-    sns.heatmap(df.corr(), annot=True, cmap="coolwarm", ax=ax)
-    ax.set_title("Correlação das Variáveis")
+if st.checkbox("📌 Correlação"):
+    fig, ax = plt.subplots(figsize=(3.5, 2.8))
+    sns.heatmap(df_filtrado.corr(), annot=True, cmap="coolwarm", ax=ax, fmt=".2f")
+    ax.set_title("Correlação")
     st.pyplot(fig, use_container_width=True)
 
-# Rodapé
+# --- Insight simples e direto ---
+if st.checkbox("🧠 Insight rápido"):
+    inad_pct = df["inadimplente"].mean() * 100
+    st.markdown(f"📉 Taxa de inadimplência geral: **{inad_pct:.1f}%**")
+    st.markdown("Clientes inadimplentes tendem a ter score mais baixo.")
+
+# --- Rodapé ---
 st.markdown("---")
-st.markdown("<center><small>Feito por Daniel Juliano</small></center>", unsafe_allow_html=True)
+st.markdown("<center><small>Projeto de Estudo • Daniel Juliano</small></center>", unsafe_allow_html=True)
