@@ -71,17 +71,23 @@ payout_total = np.array(valores_recebidos) + np.array(valores_recebidos_ndf)
 
 # Gráfico com matplotlib
 fig, ax = plt.subplots()
-ax.plot(spots_vencimento, valores_recebidos, marker='o', label='Fluxo 1 (exposição)')
-ax.plot(spots_vencimento_ndf, valores_recebidos_ndf, marker='x', label='NDF')
-ax.plot(spots_vencimento_ndf, payout_total, marker='s', label='Payout total')
 
-ax.set_xlabel('Spot no vencimento (BRL/USD)')
-ax.set_ylabel('Valor em BRL')
-ax.set_title('Spot x Valor Ajustado')
-ax.legend()
-ax.grid(True)
+ax.plot(spots_vencimento, valores_recebidos, marker='o', color="#1f77b4", linewidth=2, label='Fluxo 1 (exposição)')
+ax.plot(spots_vencimento_ndf, valores_recebidos_ndf, marker='x', color="#ff7f0e", linewidth=2, label='NDF')
+ax.plot(spots_vencimento_ndf, payout_total, marker='s', color="#2ca02c", linewidth=2, label='Payout total')
+
+ax.set_xlabel('Spot no vencimento (BRL/USD)', fontsize=12)
+ax.set_ylabel('Valor em BRL', fontsize=12)
+ax.set_title('Spot vs. Valor Ajustado', fontsize=14, weight='bold', pad=15)
+
+ax.legend(fontsize=10)
+ax.grid(visible=True, alpha=0.3, linestyle="--")
+ax.tick_params(colors='white', labelsize=10)
+ax.spines['bottom'].set_color('gray')
+ax.spines['left'].set_color('gray')
 
 st.pyplot(fig)
+
 
 # Tabela com os dados
 import pandas as pd
