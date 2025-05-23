@@ -1,14 +1,22 @@
-# ndf_calculator.py
-
+# Calculadora de NDF Interativa com Streamlit
 import streamlit as st
 import numpy as np
-from datetime import datetime
 import matplotlib.pyplot as plt
+from datetime import datetime
 
-# ======================
-# Funções auxiliares
-# ======================
+st.set_page_config(page_title="Calculadora de NDF", layout="centered")
 
+st.title("📈 Calculadora Interativa de NDF")
+
+# Entradas do usuário
+notional = st.number_input("Notional (USD)", min_value=1000, value=1_000_000, step=1000)
+pre = st.number_input("Taxa Pré (anual)", min_value=0.0, max_value=1.0, value=0.15, step=0.01)
+cupom = st.number_input("Cupom em USD (anual)", min_value=0.0, max_value=1.0, value=0.05, step=0.01)
+spot = st.number_input("Spot atual (BRL/USD)", min_value=0.1, value=5.75, step=0.01)
+data_ref = st.date_input("Data de referência", value=datetime(2025, 2, 19))
+vencimento = st.date_input("Data de vencimento", value=datetime(2026, 2, 19))
+
+# Lista de feriados nacionais (pode ser expandida)
 brazil_holidays = [
     "2025-01-01", "2025-03-03", "2025-03-04", "2025-04-18", "2025-04-21",
     "2025-05-01", "2025-06-19", "2025-09-07", "2025-10-12", "2025-11-02",
@@ -18,78 +26,69 @@ brazil_holidays = [
 ]
 
 def business_days_diff(start_date, end_date):
-    start_str = np.datetime64(start_date)
-    end_str = np.datetime64(end_date)
-    return np.busday_count(start_str, end_str, holidays=brazil_holidays)
+    return np.busday_count(
+        np.datetime64(start_date.strftime("%Y-%m-%d")),
+        np.datetime64(end_date.strftime("%Y-%m-%d")),
+        holidays=brazil_holidays
+    )
 
-def diferenca_dias(data1: str, data2: str, formato: str = "%Y-%m-%d") -> int:
-    d1 = datetime.strptime(data1, formato)
-    d2 = datetime.strptime(data2, formato)
-    return abs((d2 - d1).days)
+def diferenca_dias(data1, data2):
+    return abs((data2 - data1).days)
 
-# ======================
-# Interface Streamlit
-# ======================
+# Cálculo dos dias úteis e corridos
+ndu = business_days_diff(data_ref, vencimento)
+ndc = diferenca_dias(data_ref, vencimento)
 
-st.title("Calculadora de NDF (Non-Deliverable Forward)")
+# Cálculo do Forward
+fwd = spot * ((1 + pre)**(ndu / 252)) / (1 + cupom * ndc / 360)
+fwd *= 0.98
 
-with st.sidebar:
-    st.header("Parâmetros do Contrato")
+st.markdown(f"**Forward calculado:** {fwd:.4f}")
+st.markdown(f"**Dias úteis:** {ndu}, **Dias corridos:** {ndc}")
 
-    notional = st.number_input("Notional (USD)", value=1_000_000)
-    pre = st.number_input("Taxa de juros pré (BRL)", value=0.15, step=0.01)
-    cupom = st.number_input("Cupom cambial (USD)", value=0.05, step=0.01)
-    spot = st.number_input("Spot atual (BRL/USD)", value=5.75)
-    data_ref = st.date_input("Data de referência", value=datetime(2025, 2, 19))
-    vencimento = st.date_input("Vencimento", value=datetime(2026, 2, 19))
+# Gráficos
+valores_recebidos = []
+spots_vencimento = []
+valores_recebidos_ndf = []
+spots_vencimento_ndf = []
 
-# ======================
-# Cálculo do FWD
-# ======================
+range_min = st.slider("Spot mínimo para simulação", min_value=1.0, max_value=5.0, value=1.0, step=0.5)
+range_max = st.slider("Spot máximo para simulação", min_value=6.0, max_value=15.0, value=9.0, step=0.5)
 
-ndu = business_days_diff(str(data_ref), str(vencimento))
-ndc = diferenca_dias(str(data_ref), str(vencimento))
+spot_range = np.arange(range_min, range_max + 1, 1)
 
-fwd = spot * ((1 + pre) ** (ndu / 252)) / (1 + cupom * ndc / 360)
-fwd = fwd * 0.98  # Haircut
+for spot_vencimento in spot_range:
+    valor_recebido = notional * (spot_vencimento - 5)
+    valores_recebidos.append(valor_recebido)
+    spots_vencimento.append(spot_vencimento)
 
-st.markdown(f"**Dias úteis (ndu)**: {ndu}")
-st.markdown(f"**Dias corridos (ndc)**: {ndc}")
-st.markdown(f"**Forward calculado (fwd)**: `{fwd:.4f}`")
+    valor_recebido_ndf = notional * (fwd - spot_vencimento)
+    valores_recebidos_ndf.append(valor_recebido_ndf)
+    spots_vencimento_ndf.append(spot_vencimento)
 
-# ======================
-# Cálculo dos Payoffs
-# ======================
+# Payout total
+payout_total = np.array(valores_recebidos) + np.array(valores_recebidos_ndf)
 
-spots_vencimento = list(range(1, 10))
-valores_recebidos = [notional * (s - 5) for s in spots_vencimento]
-valores_recebidos_ndf = [notional * (fwd - s) for s in spots_vencimento]
-payouts = list(np.array(valores_recebidos) + np.array(valores_recebidos_ndf))
-
-# ======================
-# Gráfico
-# ======================
-
+# Gráfico com matplotlib
 fig, ax = plt.subplots()
-ax.plot(spots_vencimento, valores_recebidos, marker='o', label='Fluxo 1')
-ax.plot(spots_vencimento, valores_recebidos_ndf, marker='x', label='NDF')
-ax.plot(spots_vencimento, payouts, marker='s', label='Payout total')
+ax.plot(spots_vencimento, valores_recebidos, marker='o', label='Fluxo 1 (exposição)')
+ax.plot(spots_vencimento_ndf, valores_recebidos_ndf, marker='x', label='NDF')
+ax.plot(spots_vencimento_ndf, payout_total, marker='s', label='Payout total')
 
-ax.set_title("Spot x Valor Ajustado")
-ax.set_xlabel("Spot no vencimento")
-ax.set_ylabel("Valor em BRL")
+ax.set_xlabel('Spot no vencimento (BRL/USD)')
+ax.set_ylabel('Valor em BRL')
+ax.set_title('Spot x Valor Ajustado')
 ax.legend()
+ax.grid(True)
+
 st.pyplot(fig)
 
-# ======================
-# Exibir tabelas numéricas
-# ======================
-
-st.subheader("Tabela de Resultados")
-st.write("### Spots vs Resultados")
-st.dataframe({
-    "Spot Vencimento": spots_vencimento,
-    "Fluxo 1 (USD convertido)": valores_recebidos,
-    "NDF (ajuste BRL)": valores_recebidos_ndf,
-    "Payout Total": payouts
+# Tabela com os dados
+import pandas as pd
+df = pd.DataFrame({
+    "Spot Vencimento": spot_range,
+    "Fluxo 1 (exposição)": valores_recebidos,
+    "NDF": valores_recebidos_ndf,
+    "Payout Total": payout_total
 })
+st.dataframe(df.style.format({"Fluxo 1 (exposição)": "{:,.2f}", "NDF": "{:,.2f}", "Payout Total": "{:,.2f}"}))
