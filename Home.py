@@ -12,6 +12,7 @@ with st.expander("💳 Crédito"):
     st.page_link("pages/Analise_Risco_Credito.py", label="👉 Análise Exploratória")
 
 with st.expander("💹 Derivativos"):
+    st.page_link("pages/Calculadora_NDF.py", label="👉 Black-Scholes")
     st.page_link("pages/Precificacao_BlackScholes.py", label="👉 Black-Scholes")
     st.page_link("pages/Simulacao_MonteCarlo.py", label="👉 Monte Carlo")
     st.page_link("pages/Precificacao_Binomial.py", label="👉 Binomial")
